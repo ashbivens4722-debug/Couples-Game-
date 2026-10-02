@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Couple Call Challenge 💕</title>
+<style>
+:root{--bg:#fff7fb;--card:#fff;--ink:#302630;--muted:#786d77;--accent:#d94f86;--accent2:#f8d6e4;--border:#ead8e1}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#fff7fb,#f7f2ff);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);min-height:100vh}
+main{width:min(720px,100%);margin:auto;padding:24px 16px 40px}
+h1{font-size:clamp(28px,7vw,42px);margin:6px 0}.sub{color:var(--muted);line-height:1.5}
+.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:20px;margin-top:16px;box-shadow:0 8px 30px rgba(80,30,60,.07)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.tabs button,.btn{min-height:46px;border:1px solid var(--border);border-radius:13px;padding:10px 14px;background:#fff;color:var(--ink);font-weight:700;cursor:pointer}
+.tabs button.active,.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.question{font-size:clamp(21px,5vw,29px);font-weight:750;line-height:1.3;margin:18px 0}
+.row{display:flex;flex-wrap:wrap;gap:9px}.btn{flex:1;min-width:130px}.small{font-size:13px;color:var(--muted)}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:10px}.score div{padding:13px;border:1px solid var(--border);border-radius:14px;text-align:center}.score strong{display:block;font-size:22px}
+#challenge{background:#fff1f6;border-radius:15px;padding:14px;margin-top:14px;line-height:1.45;font-weight:650}
+input{width:100%;padding:13px;border:1px solid var(--border);border-radius:12px;font-size:16px;margin:6px 0 10px}
+.note{background:#faf7ff;border:1px dashed #d9cce8;padding:13px;border-radius:14px;line-height:1.45}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <div class="small">A TWO-PERSON PHONE GAME</div>
+  <h1>Couple Call Challenge 💕</h1>
+  <p class="sub">Take turns answering questions, guessing each other, and doing silly challenges. No account or app required.</p>
+
+  <section class="card">
+    <label class="small" for="p1">Player names</label>
+    <input id="p1" placeholder="Your name">
+    <input id="p2" placeholder="Fiancé's name">
+    <div class="note">Tip: Put the phone on speaker or keep the webpage open while you talk. For guessing questions, each person answers privately in their head first, then reveal your answers out loud.</div>
+  </section>
+
+  <section class="card">
+    <div class="tabs" id="tabs"></div>
+    <div class="small" id="round">Ready?</div>
+    <div class="question" id="question">Press “Start Game” to begin.</div>
+    <div class="row">
+      <button class="btn primary" id="start">Start Game</button>
+      <button class="btn" id="next">Next Question</button>
+      <button class="btn" id="challengeBtn">Random Challenge</button>
+    </div>
+    <div id="challenge" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="score">
+      <div><span class="small">Questions</span><strong id="qcount">0</strong></div>
+      <div><span class="small">Challenges</span><strong id="ccount">0</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="small">OPTIONAL HOUSE RULE</div>
+    <p><b>Guessing point:</b> If you correctly predict your fiancé's answer, give yourself 1 point. First person to 5 points gets to choose the next challenge.</p>
+  </section>
+
+  <footer>Made for two people who want something fun to do over a call. ❤️</footer>
+</main>
+
+<script>
+const sets={
+"Get to Know You":[
+"What was your first impression of me?",
+"What little thing I do always makes you laugh?",
+"What memory with me could you relive?",
+"What is something you think we would be great at doing together?",
+"What is one thing you think I understand about you better than most people?",
+"What is something about me you noticed before I realized you noticed?"
+],
+"Guess Me":[
+"What am I most likely to order at a restaurant?",
+"If I could instantly become amazing at one hobby, what would I choose?",
+"What would I do first if we suddenly had a completely free day together?",
+"What movie or show could I probably watch over and over?",
+"What can instantly improve my mood?",
+"If I could have any animal as a pet, what would I pick?"
+],
+"Funny":[
+"Who would survive longer in a zombie movie, and why?",
+"If we opened a ridiculous business together, what would it sell?",
+"What would our couple superhero names be?",
+"Who is more likely to accidentally argue with a GPS?",
+"If our relationship were a sitcom, what would the title be?",
+"If we were stuck in a grocery store overnight, what would we do first?"
+],
+"Future":[
+"What place would you love for us to visit together?",
+"What silly tradition should we start?",
+"What ordinary future moment do you think would make you really happy?",
+"What would our perfect lazy day together include?",
+"What new thing would you like us to try together?",
+"What kind of adventure would you want us to remember years from now?"
+]
+};
+
+const challenges=[
+"Both do your best dramatic movie-trailer voice for 10 seconds.",
+"Take turns saying three nice things about the other person — no repeats.",
+"One person hums a song; the other gets one guess.",
+"Invent a ridiculous nickname for each other and explain it.",
+"Tell the funniest harmless story you remember about the two of you.",
+"Both say the first word that comes to mind, then explain why.",
+"Take turns making the other person laugh without using the word 'love'.",
+"Describe your fiancé as if you were introducing them as a famous celebrity.",
+"Make up a completely fake holiday that celebrates your relationship."
+];
+
+let category="Get to Know You", index=0, questions=0, challenges=0, started=false;
+const tabs=document.getElementById("tabs"), q=document.getElementById("question"), round=document.getElementById("round");
+Object.keys(sets).forEach((name,i)=>{
+ const b=document.createElement("button"); b.textContent=name; if(i===0)b.classList.add("active");
+ b.onclick=()=>{category=name;index=0;[...tabs.children].forEach(x=>x.classList.remove("active"));b.classList.add("active");showQuestion()};
+ tabs.appendChild(b);
+});
+function showQuestion(){
+ started=true;
+ const arr=sets[category];
+ q.textContent=arr[index%arr.length];
+ round.textContent=`Round ${questions+1} • ${category}`;
+ questions++;
+ document.getElementById("qcount").textContent=questions;
+ document.getElementById("challenge").hidden=true;
+}
+document.getElementById("start").onclick=()=>{questions=0;index=0;showQuestion()};
+document.getElementById("next").onclick=()=>{if(!started)showQuestion();else{index++;showQuestion()}};
+document.getElementById("challengeBtn").onclick=()=>{
+ const c=challenges[Math.floor(Math.random()*challenges.length)];
+ const box=document.getElementById("challenge"); box.textContent="🎲 "+c; box.hidden=false;
+ challenges++;document.getElementById("ccount").textContent=challenges;
+};
+</script>
+</body>
+</html>
